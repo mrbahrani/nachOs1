@@ -34,6 +34,8 @@
 
 Thread::Thread(char* threadName)
 {
+	runningTime = 3;
+	priority = 0;
     name = threadName;
     stackTop = NULL;
     stack = NULL;
@@ -85,13 +87,14 @@ Thread::~Thread()
 //----------------------------------------------------------------------
 
 void 
-Thread::Fork(VoidFunctionPtr func, int arg)
+Thread::Fork(VoidFunctionPtr func, int arg, int p)
 {
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
 	  name, (int) func, arg);
     
     StackAllocate(func, arg);
-
+    int oldP = this->priority;
+   this->priority = p;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
     scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts 
 					// are disabled!
@@ -176,15 +179,18 @@ Thread::Yield ()
 {
     Thread *nextThread;
     IntStatus oldLevel = interrupt->SetLevel(IntOff);
-    
     ASSERT(this == currentThread);
     
     DEBUG('t', "Yielding thread \"%s\"\n", getName());
-    
+
     nextThread = scheduler->FindNextToRun();
     if (nextThread != NULL) {
-	scheduler->ReadyToRun(this);
+    scheduler->ReadyToRun(this);
 	scheduler->Run(nextThread);
+    }
+    else
+    {
+    	printf("I am null\n");
     }
     (void) interrupt->SetLevel(oldLevel);
 }

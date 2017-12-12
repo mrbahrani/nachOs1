@@ -29,8 +29,10 @@ class Scheduler {
     void Print();			// Print contents of ready list
     
   private:
-    List *readyList;  		// queue of threads that are ready to run,
-				// but not running
+    List *sjfReadyList; // First List
+    List *pqReadyList; // Second List
+    int sTime; // it holds the time that the thread runs
+    int eTime; // it holds the time that the thread is Over;
 };
 
 #endif // SCHEDULER_H

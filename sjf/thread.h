@@ -89,7 +89,7 @@ class Thread {
 
     // basic thread operations
 
-    void Fork(VoidFunctionPtr func, int arg); 	// Make thread run (*func)(arg)
+    void Fork(VoidFunctionPtr func, int arg, int p); 	// Make thread run (*func)(arg)
     void Yield();  				// Relinquish the CPU if any 
 						// other thread is runnable
     void Sleep();  				// Put the thread to sleep and 
@@ -101,6 +101,11 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
+    int getPriority(){return (priority);}
+    void setPriority(int prio){priority=prio;}
+    unsigned long int getRunningTime(){return (runningTime);}
+    void setRunningTime(unsigned long int getR) {runningTime= getR;}
+
 
   private:
     // some of the private data for this class is listed above
@@ -110,7 +115,8 @@ class Thread {
 					// (If NULL, don't deallocate stack)
     ThreadStatus status;		// ready, running or blocked
     char* name;
-
+    int priority; //In case the process went to the second Queue.
+    unsigned long int runningTime; //The time that the process took to run for the last time.
     void StackAllocate(VoidFunctionPtr func, int arg);
     					// Allocate a stack for thread.
 					// Used internally by Fork()

@@ -17,20 +17,29 @@
 // Copyright (c) 1992-1993 The Regents of the University of California.
 // All rights reserved.  See copyright.h for copyright notice and limitation 
 // of liability and disclaimer of warranty provisions.
-
 #include "copyright.h"
 #include "scheduler.h"
 #include "system.h"
-
+#include <sys/time.h>
 //----------------------------------------------------------------------
 // Scheduler::Scheduler
 // 	Initialize the list of ready but not running threads to empty.
 //----------------------------------------------------------------------
 
+unsigned long time_generator()
+{
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    unsigned long timestamp;
+    timestamp = 1000*tv.tv_sec + tv.tv_usec;
+    return timestamp;
+}
+
 Scheduler::Scheduler()
 { 
-    readyList = new List; 
-} 
+    sjfReadyList = new List;
+    pqReadyList = new List;
+}
 
 //----------------------------------------------------------------------
 // Scheduler::~Scheduler
@@ -39,7 +48,8 @@ Scheduler::Scheduler()
 
 Scheduler::~Scheduler()
 { 
-    delete readyList; 
+    delete sjfReadyList;
+    delete pqReadyList;
 } 
 
 //----------------------------------------------------------------------
@@ -56,7 +66,7 @@ Scheduler::ReadyToRun (Thread *thread)
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
     thread->setStatus(READY);
-    readyList->Append((void *)thread);
+    sjfReadyList->SortedInsert((void *)thread,thread->getRunningTime());
 }
 
 //----------------------------------------------------------------------
@@ -70,7 +80,7 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
-    return (Thread *)readyList->Remove();
+    return (Thread *)sjfReadyList->Remove();
 }
 
 //----------------------------------------------------------------------
@@ -101,10 +111,12 @@ Scheduler::Run (Thread *nextThread)
     
     oldThread->CheckOverflow();		    // check if the old thread
 					    // had an undetected stack overflow
-
-    currentThread = nextThread;		    // switch to the next thread
-    currentThread->setStatus(RUNNING);      // nextThread is now running
-    
+    eTime = time_generator();	//end time of the oldThread
+    if (currentThread != NULL)
+    	currentThread->setRunningTime(eTime-sTime);
+    currentThread = nextThread;// switch to the next thread
+    currentThread->setStatus(RUNNING);// nextThread is now running
+    sTime = time_generator();	//start time of the nextThread
     DEBUG('t', "Switching from thread \"%s\" to thread \"%s\"\n",
 	  oldThread->getName(), nextThread->getName());
     
@@ -122,6 +134,7 @@ Scheduler::Run (Thread *nextThread)
     // before now (for example, in Thread::Finish()), because up to this
     // point, we were still running on the old thread's stack!
     if (threadToBeDestroyed != NULL) {
+
         delete threadToBeDestroyed;
 	threadToBeDestroyed = NULL;
     }
@@ -143,5 +156,5 @@ void
 Scheduler::Print()
 {
     printf("Ready list contents:\n");
-    readyList->Mapcar((VoidFunctionPtr) ThreadPrint);
+    sjfReadyList->Mapcar((VoidFunctionPtr) ThreadPrint);
 }
