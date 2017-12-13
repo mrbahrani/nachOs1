@@ -24,13 +24,18 @@ int testnum = 1;
 //	purposes.
 //----------------------------------------------------------------------
 
+void SimpleThreadtest(int which){	//every thread will run 1 time to check the accuracy of the algorithm
+
+	printf("*** thread %d with priority %d looped %d time *** \n", which , currentThread->get_priority() , 1 );
+	        currentThread->Yield();
+}
 void
 SimpleThread(int which)
 {
     int num;
     
-    for (num = 0; num < 5; num++) {
-	printf("*** thread %d looped %d times\n", which, num);
+    for (num = 0; num < 10; num++) {
+	printf("*** thread %d with priority %d looped %d times *** \n", which , currentThread->get_priority() , 1 );
         currentThread->Yield();
     }
 }
@@ -61,7 +66,27 @@ ThreadTest1()
     thread_6->Fork(SimpleThread , 6);
     Thread *thread_7 = new Thread("forked thread" ,700);
     thread_7->Fork(SimpleThread , 7);
+
     //SimpleThread(0);
+
+    //threads here will call "SimpleThreadtest"
+
+    /*Thread *thread_1 = new Thread("forked thread" ,100);
+    thread_1->Fork(SimpleThreadtest , 1);
+    Thread *thread_2 = new Thread("forked thread" ,2);
+    thread_2->Fork(SimpleThreadtest , 2);
+    Thread *thread_3 = new Thread("forked thread" ,300);
+    thread_3->Fork(SimpleThreadtest , 3);
+    Thread *thread_4 = new Thread("forked thread" ,4);
+    thread_4->Fork(SimpleThreadtest , 4);
+    Thread *thread_5 = new Thread("forked thread" ,500);
+    thread_5->Fork(SimpleThreadtest , 5);
+    Thread *thread_6 = new Thread("forked thread" ,6);
+    thread_6->Fork(SimpleThreadtest , 6);
+    Thread *thread_7 = new Thread("forked thread" ,700);
+    thread_7->Fork(SimpleThreadtest , 7);
+	*/
+
 }
 
 //----------------------------------------------------------------------
