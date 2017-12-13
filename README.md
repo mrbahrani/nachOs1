@@ -41,3 +41,54 @@ _________________________________
 }
 
 //edited by Fatemeh_TJZ
+
+_________________________________
+** Changes for Multi Level Queue **
+Let’s have a little definition about MLQ : we have 2 queues , all threads will be added to the first queue and the second queue is empty at this time.now we will check the time that each thread will take to run and finish.According to this time , threads with greater runtime will be removed from the first queue and added to the second queue . Program starts running the threads in the 1st queue using “the shortest Job first” and when the 1st queue gets empty , we will switch to the second one and program will run these threads using “ priority queue “ algorithm.
+
+Classes which changed =>
+
+1) threadtest.cc
+2) threads.cc
+3) threads.h :
+	these functions added : {
+	int getPriority(){return (priority);}
+	
+	void setPriority(int prio){priority=prio;}
+	
+	unsigned long int getRunningTime(){return (runningTime);}
+	
+	void setRunningTime(unsigned long int getR) {runningTime= getR;}
+	
+	bool timeExcess(); //a function that determine the maximum time threads should take to stay in the 1st queue 
+}
+4)scheduler.h :
+	List *sjfReadyList; // First List 
+    	List *pqReadyList; // Second List 
+    	int sTime; // it holds the time that the thread runs 
+    	int eTime; // it holds the time that the thread is Over;
+
+5)scheduler.cc :
+	unsigned long time_generator(){ //gives us the time in nano secs
+    		struct timeval tv; 
+    		gettimeofday(&tv,NULL); 
+    		unsigned long timestamp; 
+    		timestamp = 1000*tv.tv_sec + tv.tv_usec; 
+    		return timestamp; 
+	}
+	
+	Scheduler::Scheduler(){  //constructor changed
+  		sjfReadyList = new List; 
+    		pqReadyList = new List; 
+	}
+	void Scheduler::ReadyToRun (Thread *thread) { 
+    		DEBUG('t', "Putting thread %s on ready list.\n", thread->getName()); 
+		thread->setStatus(READY); 
+    		if (!thread->timeExcess()){ 
+      			sjfReadyList->SortedInsert((void *)thread,thread->getRunningTime());} 
+    		else{
+			pqReadyList->SortedInsert((void *)thread,thread->getPriority());} 
+	}
+	
+	
+//edited by hanie salman taheri
